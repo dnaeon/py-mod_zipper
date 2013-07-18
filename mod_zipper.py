@@ -24,6 +24,15 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+"""
+mod_zipper is an Apache module which is being used for browsing Zip files from your browser.
+
+It allows you to download individual files from a Zip archive located on a remote system without the
+need to download first the archive locally and extract it. 
+
+The mod_zipper module requires your Apache server to have mod_python loaded already.
+"""
+
 import os
 import time
 import zipfile
@@ -52,6 +61,10 @@ _layout = """<!DOCTYPE html>
 """
 
 def get_zip_contents(req):
+    """
+    Opens a Zip archive file and displays it's contents.
+    
+    """
     try:
         myFile = zipfile.ZipFile(req.filename, 'r', allowZip64=True)
     except IOError as e:
@@ -105,6 +118,10 @@ def get_zip_contents(req):
     return apache.OK
 
 def download_file(req, name):
+    """
+    Extracts a file from a Zip archive and transmits it to the user.
+
+    """
     try:
         myFile = zipfile.ZipFile(req.filename, 'r', allowZip64=True)
     except IOError as e:
@@ -122,6 +139,10 @@ def download_file(req, name):
     return apache.OK
 
 def handler(req):
+    """
+    Apache handler for handling user requests.
+
+    """
     form = util.FieldStorage(req, keep_blank_values=1)
 
     fname = form.getfirst('download')
