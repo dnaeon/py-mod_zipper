@@ -37,6 +37,7 @@ The mod_zipper module requires your Apache server to have mod_python loaded alre
 import os
 import time
 import zipfile
+import tempfile
 from mod_python import util, apache
 
 _layout = """<!DOCTYPE html>
@@ -133,8 +134,11 @@ def download_file(req, name, chunksize=1024):
     req.headers_out['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(name)
     req.send_http_header()
 
+    # Temp directory to extract the file
+    tmpdir = tempfile.mkdtemp(dir='/tmp')
+    
     # Extract file from the archive
-    path = myFile.extract(name, path='/tmp')
+    path = myFile.extract(name, path=tmpdir)
     myFile.close()
 
     # Send the file
@@ -153,7 +157,9 @@ def download_file(req, name, chunksize=1024):
         offset += sent
         filesize -= sent
 
+    # Clean up a bit here
     os.unlink(path)
+    os.rmdir(tmpdir)
 
     return apache.OK
 
