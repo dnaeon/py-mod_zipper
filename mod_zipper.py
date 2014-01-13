@@ -118,7 +118,7 @@ def get_zip_contents(req):
     
     return apache.OK
 
-def download_file(req, name):
+def download_file(req, name, chunksize=1024):
     """
     Extracts a file from a Zip archive and transmits it to the user.
 
@@ -128,13 +128,31 @@ def download_file(req, name):
     except IOError as e:
         return 'Failed to open file %s: %s' % (req.filename, e)
 
+    # Send headers
     req.content_type = 'text/file'
     req.headers_out['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(name)
     req.send_http_header()
-    
+
+    # Extract file from the archive
     path = myFile.extract(name, path='/tmp')
     myFile.close()
-    req.sendfile(path)
+
+    # Send the file
+    offset   = 0
+    length   = 0
+    filesize = os.stat(path)[6]
+
+    while filesize > 0:
+        if chunksize > filesize:
+            length += filesize
+        else:
+            length += chunksize
+
+        sent = req.sendfile(path, offset, length)
+
+        offset += sent
+        filesize -= sent
+
     os.unlink(path)
 
     return apache.OK
