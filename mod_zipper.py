@@ -74,8 +74,11 @@ def get_zip_contents(req):
     
     req.content_type = 'text/html'
     req.send_http_header()
+
+    archive_file = os.path.basename(req.filename)
     
     data = """
+	<a href="?download-archive=1">Download archive %s</a>
 	<h3>Contents of %s</h3>
 	<table>
 	  <tr>
@@ -86,7 +89,7 @@ def get_zip_contents(req):
 	    <th>Date</th>
 	    <th>CRC</th>
 	    <th>Comment<th>
-	  </tr>""" % os.path.basename(req.filename)
+	  </tr>""" % (archive_file, archive_file)
 
     for eachMember in myFile.namelist():
         info = myFile.getinfo(eachMember)
@@ -98,7 +101,7 @@ def get_zip_contents(req):
 
         data += """
 	    <tr>
-		<td><a href="%s?download=%s">%s</a></td>
+		<td><a href="%s?download-file=%s">%s</a></td>
         	<td>%s</td>
         	<td>%s</td>
             	<td>%s</td>
@@ -119,7 +122,7 @@ def get_zip_contents(req):
     
     return apache.OK
 
-def download_file(req, name, chunksize=1024):
+def download_file(req, name):
     """
     Extracts a file from a Zip archive and transmits it to the user.
 
@@ -142,6 +145,34 @@ def download_file(req, name, chunksize=1024):
     myFile.close()
 
     # Send the file
+    send_file(path)
+    
+    # Clean up a bit here
+    os.unlink(path)
+    os.rmdir(tmpdir)
+
+    return apache.OK
+
+def download_archive(req):
+    """
+    Sends the whole Zip archive to the client
+
+    """
+    if not os.path.exists(req.filename):
+        return 'File %s does not exists' % req.filename
+    
+    # Send headers
+    req.content_type = 'text/file'
+    req.headers_out['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(req.filename)
+    req.send_http_header()
+
+    send_file(req.filename)
+    
+def send_file(path, chunksize=1024):
+    """
+    Sends a file to the client
+
+    """
     offset   = 0
     length   = 0
     filesize = os.stat(path)[6]
@@ -157,12 +188,6 @@ def download_file(req, name, chunksize=1024):
         offset += sent
         filesize -= sent
 
-    # Clean up a bit here
-    os.unlink(path)
-    os.rmdir(tmpdir)
-
-    return apache.OK
-
 def handler(req):
     """
     Apache handler for handling user requests.
@@ -170,9 +195,13 @@ def handler(req):
     """
     form = util.FieldStorage(req, keep_blank_values=1)
 
-    fname = form.getfirst('download')
-    if fname:
-        download_file(req, fname)
+    file_value    = form.getfirst('download-file')
+    archive_value = form.getfirst('download-archive')
+    
+    if file_value:
+        download_file(req, file_value)
+    elif archive_value:
+        download_archive(req)
     else:
         get_zip_contents(req)
 
