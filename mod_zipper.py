@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013 Marin Atanasov Nikolov <dnaeon@gmail.com>
+# Copyright (c) 2013-2014 Marin Atanasov Nikolov <dnaeon@gmail.com>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ It allows you to download individual files from a Zip archive located on a remot
 need to download first the archive locally and extract it. 
 
 The mod_zipper module requires your Apache server to have mod_python loaded already.
+
 """
 
 import os
@@ -127,7 +128,7 @@ def download_file(req, name):
     except IOError as e:
         return 'Failed to open file %s: %s' % (req.filename, e)
 
-    req.content_type='text/file'
+    req.content_type = 'text/file'
     req.headers_out['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(name)
     req.send_http_header()
     
