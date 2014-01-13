@@ -145,7 +145,7 @@ def download_file(req, name):
     myFile.close()
 
     # Send the file
-    send_file(path)
+    send_file(req, path)
     
     # Clean up a bit here
     os.unlink(path)
@@ -166,9 +166,9 @@ def download_archive(req):
     req.headers_out['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(req.filename)
     req.send_http_header()
 
-    send_file(req.filename)
+    send_file(req, req.filename)
     
-def send_file(path, chunksize=1024):
+def send_file(req, path, chunksize=1024):
     """
     Sends a file to the client
 
