@@ -79,7 +79,7 @@ def get_zip_contents(req):
     archive_file = os.path.basename(req.filename)
     
     data = """
-	<a href="?download-archive=1">Download archive %s</a>
+	<a href="?fetch=1">Download archive %s</a>
 	<h3>Contents of %s</h3>
 	<table>
 	  <tr>
@@ -102,7 +102,7 @@ def get_zip_contents(req):
 
         data += """
 	    <tr>
-		<td><a href="%s?download-file=%s">%s</a></td>
+		<td><a href="%s?file=%s">%s</a></td>
         	<td>%s</td>
         	<td>%s</td>
             	<td>%s</td>
@@ -195,12 +195,12 @@ def handler(req):
     """
     form = util.FieldStorage(req, keep_blank_values=1)
 
-    file_value    = form.getfirst('download-file')
-    archive_value = form.getfirst('download-archive')
+    fetch_file    = form.getfirst('file')
+    fetch_archive = form.getfirst('fetch')
     
-    if file_value:
-        download_file(req, file_value)
-    elif archive_value:
+    if fetch_file:
+        download_file(req, fetch_file)
+    elif fetch_archive:
         download_archive(req)
     else:
         get_zip_contents(req)
