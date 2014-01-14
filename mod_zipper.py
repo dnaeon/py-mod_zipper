@@ -38,6 +38,7 @@ import os
 import time
 import zipfile
 import tempfile
+import shutil
 from mod_python import util, apache
 
 _layout = """<!DOCTYPE html>
@@ -148,8 +149,7 @@ def download_file(req, name):
     send_file(req, path)
     
     # Clean up a bit here
-    os.unlink(path)
-    os.rmdir(tmpdir)
+    shutil.rmtree(tmpdir)
 
     return apache.OK
 
