@@ -22,6 +22,11 @@ pip install .
 Create an Apache vhost and configure `py-mod_zipper`.
 
 ``` apacheconf
+Alias "/css" "/path/to/py-mod_zipper/css"
+<Directory "/path/to/py-mod_zipper/css">
+	Require all granted
+</Directory>
+
 <Directory /home/username/public_html> 
 	Options +Indexes
 	AddHandler mod_python .zip
@@ -30,7 +35,23 @@ Create an Apache vhost and configure `py-mod_zipper`.
 </Directory>
 ```
 
-Make sure to reload the Apache configuration.
+Make sure to reload the Apache service.
+
+## Docker
+
+Build a Docker image.
+
+``` shell
+docker build -t mod_zipper:latest .
+```
+
+Then run the container with a directory containing zip archives.
+
+``` shell
+docker run --rm -p 8080:80 -v /path/to/zip/files:/usr/local/apache2/htdocs mod_zipper:latest
+```
+
+Open your browser at http://localhost:8080/
 
 ## License
 
