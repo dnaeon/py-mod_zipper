@@ -34,6 +34,8 @@ The mod_zipper module requires your Apache server to have mod_python loaded alre
 
 """
 
+__version__ = '0.1.0'
+
 import os
 import time
 import zipfile
@@ -115,7 +117,7 @@ def get_zip_contents(req):
                         ratio,
                         time.strftime('%Y-%m-%d %H:%M:%S', (info.date_time + (0, 0, 0))),
                         hex(info.CRC),
-                        info.comment)
+                        info.comment.decode('utf-8'))
             
     data += '</table>'
     myFile.close()
@@ -135,14 +137,13 @@ def download_file(req, name):
 
     # Send headers
     req.content_type = 'text/file'
-    req.headers_out['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(name)
-    req.send_http_header()
+    req.headers_out['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(name.value)
 
     # Temp directory to extract the file
     tmpdir = tempfile.mkdtemp(dir='/tmp')
     
     # Extract file from the archive
-    path = myFile.extract(name, path=tmpdir)
+    path = myFile.extract(name.value, path=tmpdir)
     myFile.close()
 
     # Send the file
@@ -152,6 +153,7 @@ def download_file(req, name):
     shutil.rmtree(tmpdir)
 
     return apache.OK
+
 
 def download_archive(req):
     """
@@ -164,7 +166,6 @@ def download_archive(req):
     # Send headers
     req.content_type = 'text/file'
     req.headers_out['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(req.filename)
-    req.send_http_header()
 
     send_file(req, req.filename)
     
@@ -183,7 +184,7 @@ def send_file(req, path, chunksize=1024):
         else:
             length += chunksize
 
-        sent = req.sendfile(path, offset, length)
+        sent = req.sendfile(path)
 
         offset += sent
         filesize -= sent
@@ -195,9 +196,11 @@ def handler(req):
     """
     form = util.FieldStorage(req, keep_blank_values=1)
 
+
+
     fetch_file    = form.getfirst('file')
     fetch_archive = form.getfirst('fetch')
-    
+
     if fetch_file:
         download_file(req, fetch_file)
     elif fetch_archive:
