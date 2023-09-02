@@ -1,2 +1,6 @@
+# Emacs backup files
 *~
-\#*
+build/
+dist/
+
+
